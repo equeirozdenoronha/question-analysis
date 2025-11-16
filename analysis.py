@@ -33,11 +33,33 @@ def get_most_common_words(data):
 
     low_f=Counter([w for w in low if w not in stop])
     high_f=Counter([w for w in high if w not in stop])
-
-    low_formatted = [{'word': item[0], 'count': item[1]} for item in low_f.most_common(10)]
-    high_formatted = [{'word': item[0], 'count': item[1]} for item in high_f.most_common(10)]
-
-    return low_formatted, high_formatted
+    
+    # Calculate totals for normalization
+    total_low = len([w for w in low if w not in stop])
+    total_high = len([w for w in high if w not in stop])
+    
+    # Get top words from both groups and combine
+    all_words = set([w for w, c in low_f.most_common(20)] + [w for w, c in high_f.most_common(20)])
+    
+    word_comparison = []
+    for word in all_words:
+        low_count = low_f.get(word, 0)
+        high_count = high_f.get(word, 0)
+        low_freq = (low_count / total_low) * 1000
+        high_freq = (high_count / total_high) * 1000
+        
+        word_comparison.append({
+            'word': word,
+            'low_count': low_count,
+            'high_count': high_count,
+            'low_freq': low_freq,
+            'high_freq': high_freq
+        })
+    
+    # Sort by difference to show most distinctive
+    word_comparison.sort(key=lambda x: x['low_freq'] - x['high_freq'], reverse=True)
+    
+    return word_comparison
 
 
 
@@ -54,29 +76,24 @@ def get_most_common_phrases(data):
     high_formatted = [{'phrase': item[0], 'count': item[1]} for item in high_f]
     return low_formatted, high_formatted
 
-def create_output(most_common_words, most_common_phrases):
+def create_output(word_comparison, most_common_phrases):
     with open('output.json', 'w') as file:
         json.dump({
-            'most_common_low_percentage_words': most_common_words[0],
-            'most_common_high_percentage_words': most_common_words[1],
+            'word_frequency_comparison': word_comparison,
             'most_common_low_percentage_phrases': most_common_phrases[0],
             'most_common_high_percentage_phrases': most_common_phrases[1]
-        }, file)
-def create_output_csv(most_common_words, most_common_phrases):
+        }, file, indent=2)
+def create_output_csv(word_comparison, most_common_phrases):
     with open('output.csv', 'w') as file:
         writer = csv.writer(file)
         
-        # Write words grouped by performance
-        writer.writerow(['Most Common Words in Low Scoring Questions'])
-        writer.writerow(['Word', 'Number of Occurrences'])
-        for word in most_common_words[0]:
-            writer.writerow([word['word'], word['count']])
-        writer.writerow([])
-
-        writer.writerow(['Most Common Words in High Scoring Questions'])
-        writer.writerow(['Word', 'Number of Occurrences'])
-        for word in most_common_words[1]:
-            writer.writerow([word['word'], word['count']])
+        # Write word frequency comparison
+        writer.writerow(['Word Frequency Comparison (per 1000 words)'])
+        writer.writerow(['Word', 'Low-Scoring Freq', 'High-Scoring Freq', 'Difference'])
+        for word in word_comparison:
+            diff = word['low_freq'] - word['high_freq']
+            writer.writerow([word['word'], f"{word['low_freq']:.2f}", 
+                           f"{word['high_freq']:.2f}", f"{diff:+.2f}"])
         writer.writerow([])
 
         # Write phrases grouped by performance
@@ -94,9 +111,9 @@ def create_output_csv(most_common_words, most_common_phrases):
 
 
 def main():
-    most_common_words, most_common_phrases = analyze_data()
-    create_output(most_common_words, most_common_phrases)
-    create_output_csv(most_common_words, most_common_phrases)
+    word_comparison, most_common_phrases = analyze_data()
+    create_output(word_comparison, most_common_phrases)
+    create_output_csv(word_comparison, most_common_phrases)
 
 if __name__ == '__main__':
     main()
