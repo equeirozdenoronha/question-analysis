@@ -1,56 +1,33 @@
-## Newsela Quiz Question Analysis
+## Quiz Question Analysis
 
-### Overview
-This project analyzes quiz questions to answer: **What words appear more frequently in questions that students tend to do poorly on vs. questions they do well on?**
+This script analyzes quiz questions to identify which words appear more frequently in questions students struggle with vs. questions they answer correctly.
+
+### Setup
+
+Requirements: Python 3 (uses only standard library)
+
+Run the analysis:
+```bash
+python3 analysis.py
+```
+
+This generates `output.csv` and `output.json` with word frequency comparisons.
 
 ### Approach
-Questions are separated into two groups based on student performance:
-- **Low-scoring questions:** < 50% of students answered correctly (students struggle)
-- **High-scoring questions:** > 50% of students answered correctly (students do well)
 
-For each word, we calculate:
-- Frequency per 1000 words in each group (normalized to account for different group sizes)
-- Difference between groups to identify distinctive words
+Questions are split into two groups based on percent_correct:
+- Low-scoring: < 50% (harder questions)
+- High-scoring: > 50% (easier questions)
 
-### Key Findings
+The script calculates word frequency per 1000 words in each group to account for the different number of questions. Words appearing more often in one group vs. the other show up clearly in the difference column.
 
-**Words more frequent in LOW-scoring questions (students struggle):**
-- `paragraph` (+7.15 per 1000) - Questions asking about specific paragraphs
-- `select` (+5.15) - Questions requiring selection/identification
-- `best` (+4.52) - Questions asking for "best" answer/evidence
-- `author` (+1.91) - Questions about author's purpose or intent
-- `idea` (+1.63) - Questions about main/central ideas
+### Results
 
-**Words more frequent in HIGH-scoring questions (students do well):**
-- `sentence` (-4.30 per 1000) - Questions about specific sentences
-- `word` (-3.77) - Questions about word meaning/usage  
-- `according` (-3.35) - Direct factual recall questions
-- `read` (-1.70) - Questions with sentence reading prompts
-- `above` (-1.61) - Questions referencing specific content
+Looking at the output, some interesting patterns emerge:
 
-### Interpretation
-Students struggle more with questions that require:
-- Evaluating and selecting "best" evidence or answers
-- Understanding paragraphs as a whole
-- Identifying author's purpose or ideas
+Words like "paragraph", "select", and "best" show up more in harder questions. These tend to be questions asking students to evaluate or choose the "best" evidence, or analyze specific paragraphs.
 
-Students perform better on questions that:
-- Ask about specific factual content ("according to")
-- Focus on sentence-level or word-level understanding
-- Require direct text lookup
+Words like "sentence", "word", and "according" appear more in easier questions. These are often straightforward questions about word meanings or factual recall ("according to the article...").
 
-### How to Run
+It seems students do better with direct, factual questions but struggle more with questions requiring evaluation and selection of evidence.
 
-1. Ensure Python 3 is installed (no external dependencies needed)
-2. Place `quiz_questions.json` and `analysis.py` in the same directory
-3. Run: `python3 analysis.py`
-4. Results are saved to:
-   - `output.json` - Structured data
-   - `output.csv` - Human-readable comparison table
-
-### Output Format
-The CSV shows a frequency comparison table with columns:
-- Word
-- Frequency in low-scoring questions (per 1000 words)
-- Frequency in high-scoring questions (per 1000 words)
-- Difference (positive = more common in low-scoring, negative = more common in high-scoring)
